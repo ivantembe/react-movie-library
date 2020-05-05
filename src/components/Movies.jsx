@@ -1,61 +1,70 @@
 import React, { Component } from "react";
 import { getMovies } from "../services/fakeMovieService";
-import Like from "./Like";
+import { getGenres } from "../services/fakeGenreService";
+import Pagination from "./common/Pagination";
+import { paginate } from "./utilities/paginate";
+import ListGroup from "./ListGroup";
+import MoviesTable from "./MoviesTable";
 
 class Movies extends Component {
   state = {
-    movies: getMovies(),
+    movies: [],
+    genres: [],
+    selectedGenre: {},
+    pageSize: 4,
+    currentPage: 1,
   };
 
-  handleDelete(movie) {
+  componentDidMount() {
+    const genres = [{ name: "All Genres" }, ...getGenres()];
+    this.setState({ movies: getMovies(), genres });
+  }
+
+  handleGenre = (genre) => {
+    this.setState({ selectedGenre: genre, currentPage: 1 });
+  };
+
+  handlePageChange = (page) => {
+    this.setState({ currentPage: page });
+  };
+
+  handleDelete = (movie) => {
     const movies = this.state.movies.filter((m) => m._id !== movie._id);
     this.setState({
       movies,
     });
-  }
+  };
 
   render() {
-    const { movies } = this.state;
-    const dbHasMovies = <p>Showing {movies.length} movies in database.</p>;
-    const dbIsEmpty = <p>No movies in databse.</p>;
+    const { movies, pageSize, currentPage, genres, selectedGenre } = this.state;
+    const filterMovesPerGenre =
+      selectedGenre && selectedGenre._id
+        ? movies.filter((m) => m.genre.name === selectedGenre.name)
+        : movies;
+    const moviesPerPage = paginate(filterMovesPerGenre, currentPage, pageSize);
+
     return (
       <React.Fragment>
-        {movies.length === 0 ? dbIsEmpty : dbHasMovies}
-
-        <table className="table">
-          <thead>
-            <tr>
-              <th>Title</th>
-              <th>Genre</th>
-              <th>Stock</th>
-              <th>Rate</th>
-              <th></th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody>
-            {movies.map((movie) => (
-              <tr key={movie._id}>
-                <td>{movie.title}</td>
-                <td>{movie.genre.name}</td>
-                <td>{movie.numberInStock}</td>
-                <td>{movie.dailyRentalRate}</td>
-                <td>
-                  <Like />
-                </td>
-                <td>
-                  <button
-                    onClick={() => this.handleDelete(movie)}
-                    // onClick={() => this.handleDelete(movie)}  -- This approach is used if the function(handleDelete) is NOT a array function!
-                    className="btn btn-danger"
-                  >
-                    Delete
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <div className="d-flex">
+          <ListGroup
+            genres={genres}
+            onGenreChange={this.handleGenre}
+            selectedGenre={selectedGenre}
+          />
+          <div>
+            <MoviesTable
+              filterMovesPerGenre={filterMovesPerGenre}
+              moviesPerPage={moviesPerPage}
+              onDelete={this.handleDelete}
+            />
+            <Pagination
+              itemCount={filterMovesPerGenre.length}
+              pageSize={pageSize}
+              currentPage={currentPage}
+              onPageChange={this.handlePageChange}
+            />
+          </div>
+        </div>
       </React.Fragment>
     );
   }
