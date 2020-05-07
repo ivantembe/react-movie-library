@@ -7,6 +7,8 @@ class Navbar extends Component {
       { id: 1, name: "Movies", path: "/" },
       { id: 2, name: "Customers", path: "/customers" },
       { id: 3, name: "Rental", path: "/rental" },
+      { id: 4, name: "Login", path: "/login" },
+      { id: 5, name: "Register", path: "/register" },
     ],
   };
 
@@ -38,6 +40,9 @@ class Navbar extends Component {
               </li>
             ))}
           </ul>
+          <Link className="btn btn-primary" to="/movies/new">
+            Add Movie
+          </Link>
         </div>
       </nav>
     );
